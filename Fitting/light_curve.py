@@ -408,13 +408,13 @@ class gp_interpolation:
         # Save the predictions as pickle file
         if save_pred:
             interp_df = pd.DataFrame(list(zip(x_pred, res, sig_pred)), columns=['JD', 'FMAG', 'FERR'])
-            output_filename = save_file+'interp_'+str(band)+'.pkl'
+            output_filename = save_file+'interp_'+str(self.band)+'.pkl'
             if os.path.exists(output_filename):
                 os.remove(output_filename)
             interp_df.to_pickle(output_filename)
             
         if verbose:
-            print ("You are working on %s"%supernova)
+            print ("You are working on %s"%self.supernova)
             print ("The following are the interpolated values for the band %s "%self.band)
             print ("JD at maximum = %f "%jd_max)
             print ("Mag at maximum = %f +/- %f"%(mag_max, err_max))
@@ -489,7 +489,7 @@ class gp_interpolation:
     
         kernel = ConstantKernel(amp, constant_value_bounds='fixed') * Matern(length_scale=scale,
                                                                         length_scale_bounds='fixed',
-                                                                         nu=diff_deg+0.5)
+                                                                        nu=diff_deg+0.5)
     
         gp = GaussianProcessRegressor(kernel=kernel, alpha=yerr**2)
         X = np.array([self.x]).T
@@ -521,7 +521,7 @@ class gp_interpolation:
     
     def monte_carlo(self, mc_trials, save_results,
                     store_params=False, kcorr=False, find_two_peaks=False, 
-                   Object='SN2011aa'):
+                   ):
     
         '''
         df: SN LC dataframe
@@ -593,7 +593,7 @@ class gp_interpolation:
                 os.remove(file_name)
             f = open(file_name, 'w')
             
-            f.write('This file contains the LC params of %s in filter-%s\n\n'%(supernova, self.band))
+            f.write('This file contains the LC params of %s in filter-%s\n\n'%(self.supernova, self.band))
             f.write("#-----------------------------#\n\n")
             f.write("#-----------------------------#\n")
             f.write("Jd at maximum in %s band is: %f +/- %f\n" %(self.band, jd_max, jd_max_err))
