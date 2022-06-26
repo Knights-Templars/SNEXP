@@ -163,6 +163,64 @@ class create_lc:
             object_dataframe['Date'] = object_dataframe['JD'].apply(lambda x: self.jd_to_date(x))
         
         return object_dataframe
+
+    def ext_cor_mag(self, mag, band, ebv_Gal, ebv_host=0.0, host=False):
+    
+        if not host:
+            ext_mag = mag - (filter_df.loc[band, 'RLambda'] * ebv_Gal)
+        else:
+            ext_mag = mag - (filter_df.loc[band, 'RLambda'] * ebv_Gal) - \
+                        (filter_df.loc[band, 'RLambda'] * ebv_host)
+        
+        return ext_mag
+
+
+    def ext_cor_err(self, merr, band, ebv_Gerr, ebv_herr=0.0, host=False):
+    
+        if not host:
+            ext_err = np.sqrt(merr**2 + (filter_df.loc[band, 'RLambda'] * ebv_Gerr)**2)
+        else:
+            ext_err = np.sqrt(merr**2 + (filter_df.loc[band, 'RLambda'] * ebv_Gerr)**2 + \
+                         (filter_df.loc[band, 'RLambda'] * ebv_herr)**2)
+        
+        return ext_err
+
+
+    def color(self, df, color, ebv_Gal, ebv_Gerr, ebv_host=0.0, ebv_herr=0.0, ext_cor=True, host=False):
+        
+        colors = color.split('-')
+        df = df.set_index('JD')
+    
+        dict_mag = {}
+    
+        for index, rows in df.iterrows():
+            if index not in dict_mag.keys():
+                dict_mag[index] = {}
+            
+            dict_mag[index][rows['FILTER']] = rows['MAG']
+            dict_mag[index][rows['FILTER']+str('Err')] = rows['MERR']
+    
+        mag_col_df = pd.DataFrame(dict_mag).T
+        mag_col_df.index.name = 'JD'
+    
+        mag_col_df = mag_col_df.reset_index()
+    
+        color_df = mag_col_df[['JD', colors[0], colors[0]+str('Err'), colors[1], colors[1]+str('Err')]]
+        color_df = color_df.dropna()
+    
+        if not ext_cor:
+            color_df[color] = color_df.apply(lambda x: x[colors[0]] -  x[colors[1]], axis=1)
+        else:
+        
+            color_df[colors[0]+str('ex')] = color_df[colors[0]].apply(lambda x: self.ext_cor_mag(x, colors[0], ebv_Gal=ebv_Gal, ebv_host=ebv_host, host=host))
+            color_df[colors[0]+str('ex')+'Err'] = color_df[colors[0]+'Err'].apply(lambda x: self.ext_cor_err(x, colors[0], ebv_Gerr=ebv_Gerr, ebv_herr=ebv_herr, host=host))
+            color_df[colors[1]+str('ex')] = color_df[colors[1]].apply(lambda x: self.ext_cor_mag(x, colors[1], ebv_Gal=ebv_Gal, ebv_host=ebv_host, host=host))
+            color_df[colors[1]+str('ex')+'Err'] = color_df[colors[1]+'Err'].apply(lambda x: self.ext_cor_err(x, colors[1], ebv_Gerr=ebv_Gerr, ebv_herr=ebv_herr, host=host))
+        
+            color_df[color] = color_df.apply(lambda x: x[colors[0]+str('ex')] - x[colors[1]+str('ex')], axis=1)
+            color_df[color+'Err'] = color_df.apply(lambda x: np.sqrt(x[colors[0]+str('ex')+'Err']**2 + x[colors[1]+str('ex')+'Err']**2), axis=1)
+        
+        return color_df
     
     
     
