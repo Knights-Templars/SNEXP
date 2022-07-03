@@ -130,6 +130,17 @@ class create_lc:
     
         return appmag_df
 
+    def get_swift_lc(self):
+        
+        '''
+        Get Swift light curve in a dataframe format
+        '''
+            
+        self.object_df.rename(columns={'Filter': 'FILTER'}, inplace=True)
+        total_df = self.object_df
+        mag_df = self.object_df[['JD', 'FILTER', 'MAG', 'MERR']]
+            
+        return mag_df, total_df
 
 
     def jd_to_date(self, jd, input_fmt='jd', output_fmt='isot'):
