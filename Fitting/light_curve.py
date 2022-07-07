@@ -588,7 +588,7 @@ class gp_interpolation:
         
         
     
-    def monte_carlo(self, mc_trials, save_results,
+    def monte_carlo(self, mc_trials, save_results, Object,
                     store_params=False, kcorr=False, find_two_peaks=False, 
                    ):
     
@@ -657,7 +657,7 @@ class gp_interpolation:
         
         if store_params:
             
-            file_name = save_results+'Params_'+str(self.band)+'.txt'
+            file_name = save_results+'Params_'+str(self.band)+ '_' + Object +'.txt'
             if os.path.exists(file_name):
                 os.remove(file_name)
             f = open(file_name, 'w')
@@ -693,12 +693,14 @@ class gp_interpolation:
         
             f.close()
         
-    def save_file(self, file_name, z, EB_V_gal, EB_V_galerr, EB_V_host, EB_V_hosterr,
+    def save_file(self, file_name, Object, z, RA, DEC, Host, EB_V_gal, EB_V_galerr, EB_V_host, EB_V_hosterr,
                  DM, DMerr):
         
         f = open(file_name, 'w')
         f.write("You are working on object %s\n"%Object)
         f.write("Redshit = %f\n"%z)
+        f.write("The location of the object is RA %s and DEC %s\n"%(RA, DEC))
+        f.write("The host for this event is %s\n"%Host)
         f.write("E(B-V)G = %f +/- %f\n"%(EB_V_gal, EB_V_galerr))
         f.write("E(B-V)h = %f +/- %f\n"%(EB_V_host, EB_V_hosterr))
         f.write("Distance modulus = %f +/- %f"%(DM, DMerr))
